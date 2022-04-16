@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.UserMapper">
+
+    <select id="login" parameterType="map" resultType="users">
+        select * from users where userid=#{userId} and password=#{password}
+    </select>
+
+    <!--//前台登录流程，手机号查询，包括注册时查询该手机是否已注册-->
+    <select id="queryByPhone" parameterType="String" resultType="users">
+        select * from users where phone=#{phone}
+    </select>
+
+    <!--如果没有此用户则创建该用户,包含注册功能-->
+    <insert id="insertMsg" parameterType="users">
+        insert into users
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            userid,userName,
+            <if test="password!=null and password!=''">
+                password,
+            </if>
+            <if test="grade!=null and grade!=''">
+                grade,
+            </if>
+            <if test="name!=null and name!=''">
+                name,
+            </if>
+            <if test="gender!=null and gender!=''">
+                gender,
+            </if>
+            <if test="phone!=null and phone!=''">
+                phone,
+            </if>
+            <if test="birthday!=null and birthday!=''">
+                birthday,
+            </if>
+            <if test="idCard!=null and idCard!=''">
+                idCard,
+            </if>
+            <if test="userImg!=null and userImg!=''">
+                userImg,
+            </if>
+            <if test="address!=null and address!=''">
+                address,
+            </if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            seq_userid_user.nextval,#{userName},
+            <if test="password!=null and password!=''">
+                #{password},
+            </if>
+            <if test="grade!=null and grade!=''">
+                #{grade},
+            </if>
+            <if test="name!=null and name!=''">
+                #{name},
+            </if>
+            <if test="gender!=null and gender!=''">
+                #{gender},
+            </if>
+            <if test="phone!=null and phone!=''">
+                #{phone},
+            </if>
+            <if test="birthday!=null and birthday!=''">
+                #{birthday},
+            </if>
+            <if test="idCard!=null and idCard!=''">
+                #{idCard},
+            </if>
+            <if test="userImg!=null and userImg!=''">
+                #{userImg},
+            </if>
+            <if test="address!=null and address!=''">
+                #{address},
+            </if>
+        </trim>
+    </insert>
+
+
+    <!--public List<T> queryAllMsg()throws Exception;-->
+    <select id="queryMsgById" resultType="users"  parameterType="int">
+        select * from Users where userId=#{id}
+    </select>
+
+
+    <!--public List<T> queryMsgByMap(Map<String,Object> map) throws Exception;-->
+    <select id="queryMsgByMap" resultType="users" parameterType="map">
+        select * from (select e.*,rownum rn from Users e
+        <where>
+            <if test="userId!=null and userId!=''" >
+                and userId =#{userId}
+            </if>
+            <if test="gender!=null and gender!=''" >
+                and gender = #{gender}
+            </if>
+            <if test="name!=null and name!=''">
+                and name like '%${name}%'
+            </if>
+            and rownum &lt;=(#{pageNumber}*#{pageSize})) s
+        </where>
+        where rn>(#{pageNumber}-1)*#{pageSize}
+    </select>
+
+
+    <!--public int queryMsgByMapCount(Map<String,Object> map) throws Exception;-->
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1) from Users
+        <where>
+            <if test="userName!=null and userName!=''" >
+                and username like '%${username}%'
+            </if>
+            <if test="gender!=null and gender!=''" >
+                and gender = #{gender}
+            </if>
+            <if test="name!=null and name!=''">
+                and name = #{name}
+            </if>
+        </where>
+    </select>
+
+
+    <!--select username,phone from users-->
+    <!--where username='zhangsan' and phone='123456789'-->
+
+    <select id="selectByUserPhone" parameterType="users">
+        select username,phone from users
+        where username=#{userName} and phone=#{phone}
+    </select>
+
+    <!--userId;-->
+    <!--userName;-->
+    <!--password;-->
+    <!--grade;-->
+    <!--name;-->
+    <!--gender;-->
+    <!--phone;-->
+    <!--birthday;-->
+    <!--idCard;-->
+    <!--userImg;-->
+    <!--address;-->
+    <update id="updateMsg" parameterType="users">
+        update Users
+        <set>
+            <if test="userName!=null and userName!=''">
+                userName=#{userName},
+            </if>
+            <if test="password!=null and password!=''">
+                password=#{password},
+            </if>
+            <if test="grade!=null">
+                grade=#{grade},
+            </if>
+            <if test="name!=null">
+                name=#{name},
+            </if>
+            <if test="gender!=null and gender!=''">
+                gender=#{gender},
+            </if>
+            <if test="phone!=null and phone!=''">
+                phone=#{phone},
+            </if>
+            <if test="birthday!=null">
+                birthday=#{birthday},
+            </if>
+            <if test="idCard!=null and idCard!=''">
+                idCard=#{idCard},
+            </if>
+            <if test="userImg!=null and userImg!=''">
+                userImg=#{userImg},
+            </if>
+            <if test="address!=null and address!=''">
+                address=#{address},
+            </if>
+        </set>
+        where userId=#{userId}
+    </update>
+
+    <delete id="deleteMsg">
+        delete users where userId in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

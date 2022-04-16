@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.PositionMapper">
+
+    <select id="queryAllMsg" resultType="position">
+        select * from position
+    </select>
+
+    <select id="queryMsgByMap" resultType="position" parameterType="map">
+        select * from position
+        <where>
+            <if test="position!=null and position!=''">
+                and position =#{position}
+            </if>
+            <if test="introduce!=null and introduce!=''">
+                and introduce like '%${introduce}%'
+            </if>
+        </where>
+    </select>
+
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1) from position
+    </select>
+
+    <update id="updateMsg" parameterType="Emp">
+        update position
+        <set>
+            <if test="position!=null and position!=''">
+                position=#{position},
+            </if>
+            <if test="introduce!=null and introduce!=''">
+                introduce=#{introduce},
+            </if>
+        </set>
+        where positionId=#{positionId}
+    </update>
+
+
+    <insert id="insertMsg" parameterType="emp">
+        insert into position
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            positionId,position,
+            <if test="introduce!=null and introduce!=''">
+                introduce,
+            </if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            seq_positionid_position.nextval,#{position},
+            <if test="introduce!=null and introduce!=''">
+                #{introduce},
+            </if>
+
+        </trim>
+    </insert>
+
+    <delete id="deleteMsg">
+        delete position where positionId in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+
+</mapper>

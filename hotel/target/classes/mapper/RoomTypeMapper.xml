@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.RoomTypeMapper">
+
+    <select id="queryAllMsg" resultType="RoomType">
+        select * from ROOM_TYPE
+    </select>
+    <!--public T queryMsgById(Integer id) throws Exception;-->
+    <select id="queryMsgById" parameterType="Integer" resultType="RoomType">
+        select * from ROOM_TYPE where typeId=#{id}
+    </select>
+    <!--public int insertMsg(T t) throws Exception;-->
+    <insert id="insertMsg" useGeneratedKeys="true" keyProperty="typeId" keyColumn="typeId" parameterType="RoomType">
+      insert into ROOM_TYPE(typeId,roomTypeName,introduce)
+      values(seq_rtid_roomtype.nextval,#{roomTypeName},#{introduce})
+    </insert>
+    <!--public int updateMsg(T t) throws Exception;-->
+    <update id="updateMsg" parameterType="RoomType">
+      update ROOM_TYPE
+      set
+      roomTypeName=#{roomTypeName},
+      introduce=#{introduce}
+      where
+      typeId=#{typeId}
+    </update>
+
+    <delete id="deleteMsg">
+        delete from ROOM_TYPE
+        where typeId IN
+        <foreach collection="array" item="typeId" open="(" separator="," close=")">
+            #{typeId}
+        </foreach>
+    </delete>
+</mapper>

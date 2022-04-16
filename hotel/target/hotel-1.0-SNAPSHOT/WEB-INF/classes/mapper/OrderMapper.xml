@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.OrderMapper">
+    <resultMap id="orderResultMap" type="Orders">
+        <id property="orderId" column="orderId"/>
+        <result property="typeId" column="typeId"/>
+        <result property="roomId" column="roomId"/>
+        <result property="userId" column="userId"/>
+        <result property="quantity" column="quantity"/>
+            <result property="total" column="total"/>
+            <result property="checkTime" column="checkTime"/>
+            <result property="outTime" column="outTime"/>
+            <result property="cashPledge" column="cashPledge"/>
+            <result property="state" column="state"/>
+
+        <association property="roomType" javaType="RoomType">
+            <id property="typeId" column="typeId"/>
+            <result property="roomTypeName" column="roomTypeName"/>
+            <result property="introduce" column="introduce"/>
+        </association>
+
+        <association property="roomDetailet" javaType="RoomDetailet">
+            <id property="roomId" column="roomId"/>
+            <result property="rTypeId" column="rTypeId"/>
+            <result property="roomPrice" column="roomPrice"/>
+            <result property="roomImg" column="roomImg"/>
+            <result property="state" column="state"/>
+            <result property="roomNumber" column="roomNumber"/>
+            <result property="floor" column="floor"/>
+            <result property="area" column="area"/>
+            <result property="window" column="window"/>
+            <result property="peopleNum" column="peopleNum"/>
+            <result property="facilities" column="facilities"/>
+            <result property="remark" column="remark"/>
+        </association>
+        <association property="users" javaType="Users">
+            <id property="userId" column="userId"/>
+            <result property="userName" column="userName"/>
+            <result property="password" column="password"/>
+            <result property="grade" column="grade"/>
+            <result property="name" column="name"/>
+            <result property="gender" column="gender"/>
+            <result property="phone" column="phone"/>
+            <result property="birthday" column="birthday"/>
+            <result property="idCard" column="idCard"/>
+            <result property="userImg" column="userImg"/>
+            <result property="address" column="address"/>
+        </association>
+
+    </resultMap>
+
+    <resultMap id="orderAndCheckInMap" type="Orders">
+        <id property="orderId" column="orderId"/>
+        <result property="typeId" column="typeId"/>
+        <result property="roomId" column="roomId"/>
+        <result property="userId" column="userId"/>
+        <result property="quantity" column="quantity"/>
+        <result property="total" column="total"/>
+        <result property="checkTime" column="checkTime"/>
+        <result property="outTime" column="outTime"/>
+        <result property="cashPledge" column="cashPledge"/>
+        <result property="state" column="state"/>
+
+        <collection property="checkInList" ofType="checkin">
+            <id property="checkInId" column="checkInId"/>
+            <result property="orderId" column="orderId"/>
+            <result property="roomId" column="roomId"/>
+            <result property="checkName" column="checkName"/>
+            <result property="checkIdCard" column="checkIdCard"/>
+        </collection>
+    </resultMap>
+
+    <!--//查询入住人信息-->
+    <select id="queryByOrderAndCheckIn" parameterType="int" resultMap="orderAndCheckInMap">
+        select * from orders o,checkin c
+        where o.orderid=c.orderid
+        and o.orderid=#{id}
+    </select>
+
+    <select id="queryMsgByMap" parameterType="map" resultMap="orderResultMap">
+        select * from(
+        select s.*,rownum rn from
+        (select o.*,
+        rd.rtypeid,rt.roomtypename,rt.introduce,
+        rd.roomprice,rd.roomimg,rd.roomnumber,rd.floor,rd.area,rd.peoplenum,rd.facilities,rd.remark,rd.window,
+        u.username,u.grade,u.name,u.gender,u.phone,u.idcard,u.userimg
+        from orders o,room_type rt,room_detailet rd,users u
+        where o.typeId=rt.typeId
+        and o.roomId=rd.roomId
+        and o.userId=u.userId
+        and o.state in
+            <foreach collection="state" item="state" open="(" close=")" separator=",">
+                #{state}
+            </foreach>
+
+        <if test="orderId!=null and orderId!=''">
+            and o.orderId=#{orderId}
+        </if>
+        <if test="roomId!=null and roomId!=''">
+            and o.roomId=#{roomId}
+        </if>
+        <if test="typeId!=null and typeId!=''">
+            and o.typeId=#{typeId}
+        </if>
+        <if test="name!=null and name!=''">
+            and u.name like '%${name}%'
+        </if>
+        <if test="floor!=null and floor!=''">
+            and rd.floor=#{floor}
+        </if>
+        <if test="gender!=null and gender!=''">
+            and u.gender=#{gender}
+        </if>
+        order by o.orderid
+        <if test="sort!=null and sort!=''">
+            desc
+        </if>
+        ) s where rownum &lt;=(#{pageNumber}*#{pageSize}))
+        where rn>(#{pageNumber}-1)*#{pageSize}
+    </select>
+
+
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1) from
+        (select o.*,
+        rd.rtypeid,rt.roomtypename,rt.introduce,
+        rd.roomprice,rd.roomimg,rd.roomnumber,rd.floor,rd.area,rd.peoplenum,rd.facilities,rd.remark,rd.window,
+        u.username,u.grade,u.name,u.gender,u.phone,u.idcard,u.userimg,
+        rownum rn
+        from orders o,room_type rt,room_detailet rd,users u
+        where o.typeId=rt.typeId
+        and o.roomId=rd.roomId
+        and o.userId=u.userId
+        and o.state in
+        <foreach collection="state" item="state" open="(" close=")" separator=",">
+            #{state}
+        </foreach>
+
+        <if test="orderId!=null and orderId!=''">
+            and o.orderId=#{orderId}
+        </if>
+        <if test="roomId!=null and roomId!=''">
+            and o.roomId=#{roomId}
+        </if>
+        <if test="typeId!=null and typeId!=''">
+            and o.typeId=#{typeId}
+        </if>
+        <if test="name!=null and name!=''">
+            and u.name like '%${name}%'
+        </if>
+        <if test="floor!=null and floor!=''">
+            and rd.floor=#{floor}
+        </if>
+        <if test="gender!=null and gender!=''">
+            and u.gender=#{gender}
+        </if>
+        ) s
+    </select>
+
+    <delete id="deleteMsg">
+        delete from orders where orderid in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="deleteById">
+        delete from orders where orderid = #{id}
+    </delete>
+
+    <select id="queryByUserMap" resultMap="orderResultMap" parameterType="map">
+       select * from orders o,users u,room_type rt,room_detailet rd
+            where o.userid=u.userid
+            and o.typeid=rt.typeid
+            and o.roomid=rd.roomid
+            and o.userid=#{id}
+            and o.state in
+            <foreach collection="state" item="state" open="(" close=")" separator=",">
+                #{state}
+            </foreach>
+            order by outtime
+    </select>
+
+    <!--生成订单-->
+    <insert id="insertOrderMsg" parameterType="map">
+        insert into orders values
+        (
+        seq_orderid_order.nextval,
+        #{typeId},
+        #{roomId},
+        #{userId},
+        #{quantity},
+        #{total},
+        to_date(#{checkTime},'yyyy/MM/dd'),
+        to_date(#{outTime},'yyyy/MM/dd'),
+        0,
+        #{state}
+        )
+    </insert>
+
+    <!--//退房流程更改订单状态-->
+    <update id="checkout" parameterType="map">
+        update orders set state=4 where orderId=#{orderId}
+    </update>
+
+    <update id="updateMsg" parameterType="orders">
+        update orders
+        <set>
+            <if test="typeId!=null and typeId!=''">
+                 typeId=#{typeId},
+            </if>
+            <if test="roomId!=null and roomId!=''">
+                 roomId=#{roomId},
+            </if>
+            <if test="userId!=null and userId!=''">
+                 userId=#{userId},
+            </if>
+            <if test="total!=null and total!=''">
+                 total=#{total},
+            </if>
+            <if test="checkTime!=null and checkTime!=''">
+                 checkTime=#{checkTime},
+            </if>
+            <if test="outTime!=null and outTime!=''">
+                 outTime=#{outTime},
+            </if>
+            <if test="cashPledge!=null and cashPledge!=''">
+                 cashPledge=#{cashPledge},
+            </if>
+            <if test="state!=null and state!=''">
+                 state=#{state},
+            </if>
+            <if test="quantity!=null and quantity!=''">
+                 quantity=#{quantity}
+            </if>
+        </set>
+        where orderId=#{orderId}
+    </update>
+
+    <select id="queryMsgById" parameterType="int" resultType="orders">
+        select * from orders where orderId=#{id}
+    </select>
+
+</mapper>

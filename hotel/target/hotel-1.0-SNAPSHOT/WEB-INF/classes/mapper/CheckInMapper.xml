@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.CheckInMapper">
+    <resultMap id="orderResultMap" type="checkIn">
+        <id property="checkInId" column="checkInId"/>
+        <result property="orderId" column="orderId"/>
+        <result property="roomId" column="roomId"/>
+        <result property="checkName" column="checkName"/>
+        <result property="checkIdCard" column="checkIdCard"/>
+        <association property="orders" javaType="orders">
+            <id property="orderId" column="orderId"/>
+            <result property="typeId" column="typeId"/>
+            <result property="roomId" column="roomId"/>
+            <result property="userId" column="userId"/>
+            <result property="quantity" column="quantity"/>
+            <result property="total" column="total"/>
+            <result property="checkTime" column="checkTime"/>
+            <result property="outTime" column="outTime"/>
+            <result property="cashPledge" column="cashPledge"/>
+            <result property="state" column="state"/>
+        </association>
+    </resultMap>
+
+    <insert id="insertMsgByMap" parameterType="map">
+        insert into checkin values (
+        seq_checkinid_checkin.nextval,
+        #{orderId},
+        #{checkName},
+        #{checkIdCard},
+        #{roomId}
+        )
+    </insert>
+
+</mapper>

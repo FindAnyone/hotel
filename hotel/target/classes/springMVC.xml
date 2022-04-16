@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xmlns:mvc="http://www.springframework.org/schema/mvc"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/aop
+                        http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/mvc
+                        http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <mvc:annotation-driven />
+    <!--配置处理器:将处理器管理进spring容器-->
+    <context:component-scan base-package="com.msy.hotel.controller" />
+
+    <!--如果需要访问视图需要配置视图解析器-->
+    <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"></bean>
+
+    <!--配置静态资源访问放行-->
+    <!--<mvc:resources mapping="/user/**" location="/user/"></mvc:resources>-->
+    <mvc:resources mapping="/pic/**" location="/pic/"></mvc:resources>
+
+    <!--配置文件上传解析器-->
+    <!--必须要有此id名 -->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--上传文件大小限制，单位：字节 -->
+        <property name="maxUploadSize" value="5242880"/>
+        <property name="defaultEncoding" value="utf-8"/>
+    </bean>
+
+    <!--在springmvc-servlet.xml 配置文件中配置 SpringMVC 拦截器。-->
+    <!-- 可以配置多个拦截器 -->
+    <mvc:interceptors>
+        <!--interceptor：配置单个拦截器-->
+        <mvc:interceptor>
+            <!--mapping:配置拦截的路径-->
+            <mvc:mapping path="/phone/**"/>
+            <!--exclude-mapping:配置不拦截的路径-->
+            <!--<mvc:exclude-mapping path="/emp/register" />-->
+            <bean class="com.msy.hotel.interceptor.CorsInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+
+</beans>

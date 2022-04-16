@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.AvailableRoomMapper">
+    <resultMap id="room_type_map_" type="RoomDetailet">
+        <id column="roomId" property="roomId"></id>
+        <result column="rTypeId" property="rTypeId"></result>
+        <result column="roomPrice" property="roomPrice"></result>
+        <result column="roomImg" property="roomImg"></result>
+        <result column="state" property="state"></result>
+        <result column="roomNumber" property="roomNumber"></result>
+        <result column="floor" property="floor"></result>
+        <result column="area" property="area"></result>
+        <result column="window" property="window"></result>
+        <result column="peopleNum" property="peopleNum"></result>
+        <result column="facilities" property="facilities"></result>
+        <result column="remark" property="remark"></result>
+        <association property="roomType" javaType="roomType">
+            <id column="typeId" property="typeId"></id>
+            <result column="roomTypeName" property="roomTypeName"></result>
+            <result column="introduce" property="introduce"></result>
+        </association>
+    </resultMap>
+
+    <!--查询可预订房间-->
+    <select id="queryMsgByMap" resultMap="room_type_map_" parameterType="map">
+        select * from (
+        select s.*,rownum rn from(
+        select * from room_detailet rd,room_type rt
+        where rd.rtypeid = rt.typeid
+
+        <if test="checkTime!=null and checkTime!=''">
+            and roomid
+            in (
+            select roomid from room_detailet where roomid not in( select roomid from orders)
+            union select distinct o.roomid from orders o
+            where
+            outtime &lt;= any to_date (#{checkTime}, 'yyyy/mm/dd')
+            or  checktime >= any to_date(#{outTime}, 'yyyy/mm/dd'))
+        </if>
+        <if test="typeId!=null and typeId!=''">
+            and rt.typeid=#{typeId}
+        </if>
+        <if test="window!=null and window!=''">
+            and rd.window=#{window}
+        </if>
+        <if test="number!=null and number!=''">
+            and rd.peoplenum=#{number}
+        </if>
+        <if test="startPrice!=null and startPrice!=''">
+            and rd.roomprice between #{startPrice} and #{endPrice}
+        </if>
+        and rownum &lt;=#{pageNumber}*#{pageSize} ) s)
+        where rn>(#{pageNumber}-1)*#{pageSize}
+    </select>
+
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1) from room_detailet rd,room_type rt
+        where rd.rtypeid = rt.typeid
+        <if test="typeId!=null and typeId!=''">
+            and rt.typeid=#{typeId}
+        </if>
+        <if test="window!=null and window!=''">
+            and rd.window=#{window}
+        </if>
+        <if test="number!=null and number!=''">
+            and rd.peoplenum=#{number}
+        </if>
+        <if test="startPrice!=null and startPrice!=''">
+            and rd.roomprice between #{startPrice} and #{endPrice}
+        </if>
+        <if test="checkTime!=null and checkTime!=''">
+            and roomid
+            in (
+            select roomid from room_detailet where roomid not in( select roomid from orders )
+            union select distinct roomid from orders
+            where
+            outtime &lt;= any to_date (#{checkTime}, 'yyyy/mm/dd')
+            or  checktime >= any to_date(#{outTime}, 'yyyy/mm/dd'))
+        </if>
+    </select>
+
+    <!--根据预订信息查询房间类型所有所在楼层-->
+    <select id="queryByTypeId" parameterType="int" resultType="roomDetailet">
+        select floor from room_detailet
+        where rtypeid=#{id}
+        group by floor
+    </select>
+
+    <!--//房间联动-->
+    <select id="queryByMap" resultType="roomDetailet" parameterType="map">
+          select roomid, roomnumber, rtypeid
+   from room_detailet
+  where rtypeid = #{typeId}
+    and floor = #{floor}
+    and roomid not in (select roomid from orders)
+ union
+ select rt.roomid, rt.roomnumber, rt.rtypeid
+   from room_detailet rt, orders o
+  where rt.roomid = o.roomid
+    and rt.roomid in (select roomid
+        from orders
+        where outtime &lt;= any to_date (#{checkTime}, 'yyyy/mm/dd')
+        or  checktime >= any to_date(#{outTime}, 'yyyy/mm/dd')
+                         )
+    and rtypeid = #{typeId}
+    and floor = #{floor}
+    </select>
+
+</mapper>

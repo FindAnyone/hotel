@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.EmpMapper">
+
+    <resultMap id="EmpResultMap" type="Emp">
+        <id property="empId" column="empId"/>
+        <result property="empName" column="empName"/>
+        <result property="gender" column="gender"/>
+        <result property="idCard" column="idCard"/>
+        <result property="empPhone" column="empPhone"/>
+        <result property="empImg" column="empImg"/>
+        <result property="salary" column="salary"/>
+        <result property="grade" column="grade"/>
+        <association property="position" javaType="Position">
+            <id property="positionId" column="positionId"/>
+            <result property="position" column="position"/>
+            <result property="introduce" column="introduce"/>
+        </association>
+    </resultMap>
+
+    <select id="queryMsgByMap" resultMap="EmpResultMap" parameterType="map">
+        select * from (
+        select s.*,rownum rn from
+        (select * from emp e,position p
+            where e.grade=p.positionId
+            <if test="empId!=null and empId!=''">
+                and e.empId =#{empId}
+            </if>
+            <if test="empName!=null and empName!=''">
+                and e.empName like '%${empName}%'
+            </if>
+            <if test="gender!=null and gender!=''">
+                and e.gender = #{gender}
+            </if>
+        order by empId
+        <if test="sort!=null and sort!=''">
+            desc
+        </if>
+        ) s
+        where rownum &lt;=(#{pageNumber}*#{pageSize}))
+        where rn>(#{pageNumber}-1)*#{pageSize}
+    </select>
+
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1) from emp
+        <where>
+            <if test="empId!=null and empId!=''">
+                and empId =#{empId}
+            </if>
+            <if test="empName!=null and empName!=''">
+                and empName like '%${empName}%'
+            </if>
+            <if test="gender!=null and gender!=''">
+                and gender = #{gender}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryMsgById" resultType="emp" parameterType="int">
+        select * from emp where empid=#{empId}
+    </select>
+
+    <insert id="insertMsg" parameterType="emp">
+        insert into emp
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            empid,empname,gender,idcard,empphone,grade,
+            <if test="empImg!=null and empImg!=''">
+                empImg,
+            </if>
+            <if test="salary!=null and salary!=''">
+                salary,
+            </if>
+        </trim>
+        <trim prefix="values(" suffix=")" suffixOverrides=",">
+            seq_empid_emp.nextval,#{empName},#{gender},#{idCard},#{empPhone},#{grade},
+            <if test="empImg!=null and empImg!=''">
+                #{empImg},
+            </if>
+            <if test="salary!=null and salary!=''">
+                #{salary},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="deleteMsg">
+        delete emp where empid in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateMsg" parameterType="Emp">
+        update emp
+        <set>
+            <if test="empName!=null and empName!=''">
+                empName=#{empName},
+            </if>
+            <if test="salary!=null and salary!=''">
+                salary=#{salary},
+            </if>
+            <if test="gender!=null and gender!=''">
+                gender=#{gender},
+            </if>
+            <if test="idCard!=null and idCard!=''">
+                idCard=#{idCard},
+            </if>
+            <if test="empPhone!=null and empPhone!=''">
+                empPhone=#{empPhone},
+            </if>
+            <if test="empImg!=null and empImg!=''">
+                empImg=#{empImg},
+            </if>
+            <if test="grade!=null and grade!=''">
+                grade=#{grade},
+            </if>
+        </set>
+        where empId=#{empId}
+    </update>
+
+
+</mapper>

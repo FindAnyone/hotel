@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msy.hotel.mapper.EngageMapper">
+
+    <resultMap id="engageResultMap" type="engage">
+        <id property="engageId" column="engageId"></id>
+        <result property="typeId" column="typeId"></result>
+        <result property="userId" column="userId"></result>
+        <result property="quantity" column="quantity"></result>
+        <result property="checkTime" column="checkTime"></result>
+        <result property="outTime" column="outTime"></result>
+        <result property="total" column="total"></result>
+        <result property="state" column="state"></result>
+        <association property="roomDetailet" javaType="roomDetailet">
+            <id property="roomId" column="roomId"></id>
+            <result property="roomPrice" column="roomPrice"></result>
+            <result property="roomImg" column="roomImg"></result>
+            <result property="roomNumber" column="roomNumber"></result>
+            <result property="area" column="area"></result>
+            <result property="peopleNum" column="peopleNum"></result>
+            <result property="facilities" column="facilities"></result>
+        </association>
+        <association property="roomType" javaType="roomType">
+            <id property="typeId" column="typeId"></id>
+            <result property="roomTypeName" column="roomTypeName"></result>
+            <result property="introduce" column="introduce"></result>
+        </association>
+        <association property="users" javaType="users">
+            <id property="userId" column="userId"></id>
+            <result property="userName" column="userName"></result>
+            <result property="grade" column="grade"></result>
+            <result property="gender" column="gender"></result>
+            <result property="name" column="name"></result>
+            <result property="phone" column="phone"></result>
+            <result property="birthday" column="birthday"></result>
+            <result property="idCard" column="idCard"></result>
+            <result property="address" column="address"></result>
+        </association>
+    </resultMap>
+    <!--预订查询-->
+    <!--public List<T> queryMsgByMap(Map<String,Object> map) throws Exception;-->
+    <select id="queryMsgByMap" resultMap="engageResultMap" parameterType="map">
+        select * from (select e.*,
+        u.username,u.grade,u.name,u.gender,u.phone,u.birthday,u.idcard,u.address,
+        rt.roomTypeName,rt.introduce,
+        rownum rn
+        from engage e,users u,room_type rt
+        where
+            e.userid=u.userid
+            and e.typeid=rt.typeid
+            <if test="engageId!=null and engageId!=''" >
+                and engageId = #{engageId}
+            </if>
+            <if test="name!=null and name!=''" >
+                and name = #{name}
+            </if>
+            <if test="gender!=null and gender!=''" >
+                and gender = #{gender}
+            </if>
+            <if test="phone!=null and phone!=''" >
+                and engageId = #{engageId}
+            </if>
+            and rownum &lt;=(#{pageNumber}*#{pageSize}))
+        where rn>(#{pageNumber}-1)*#{pageSize}
+    </select>
+
+    <!--public int queryMsgByMapCount(Map<String,Object> map) throws Exception;-->
+    <select id="queryMsgByMapCount" parameterType="map" resultType="int">
+        select count(1)  from engage e,users u,room_type rt
+        where
+        e.userid=u.userid
+        and e.typeid=rt.typeid
+            <if test="engageId!=null and engageId!=''" >
+                and engageId = #{engageId}
+            </if>
+            <if test="name!=null and name!=''" >
+                and name = #{name}
+            </if>
+            <if test="gender!=null and gender!=''" >
+                and gender = #{gender}
+            </if>
+            <if test="phone!=null and phone!=''" >
+                and engageId = #{engageId}
+            </if>
+    </select>
+
+    <delete id="deleteMsg">
+        delete engage where engageid in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteById">
+        delete engage where engageid =#{engageId}
+    </delete>
+
+
+    <select id="queryByUserId" resultMap="engageResultMap" parameterType="int">
+       select * from engage o,users u,room_type rt,room_detailet rd
+            where o.userid=u.userid
+            and o.typeid=rt.typeid
+            and o.typeid=rd.rtypeid
+            and o.userid=#{id}
+            order by outtime
+    </select>
+
+    <insert id="insertMsg" parameterType="engage">
+        insert into engage(
+        engageId,
+        typeId,
+        userId,
+        quantity,
+        checktime,
+        outtime,
+        total,
+        state
+        )
+        values(seq_engageid_engage.nextval,
+        #{typeId},
+        #{userId},
+        #{quantity},
+        #{checkTime},
+        #{outTime},
+        #{total},
+        #{state}
+        )
+    </insert>
+
+    <!--//支付后修改状态-->
+    <update id="updateMsg" parameterType="engage">
+        update engage set state=#{state} where engageId=#{engageId}
+    </update>
+
+    <!--//查询预订表中时间冲突的房间个数-->
+    <select id="queryByDateCount" parameterType="map" resultType="int">
+        select count(1)
+        from engage
+        where engageid not in
+        (select engageid
+        from engage
+        where outtime &lt;= any to_date(#{checkTime}, 'yyyy/mm/dd')
+        or checktime >= any to_date(#{outTime}, 'yyyy/mm/dd'))
+        and typeid = #{typeId}
+    </select>
+</mapper>
